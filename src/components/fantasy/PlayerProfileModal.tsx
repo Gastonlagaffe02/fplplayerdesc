@@ -124,7 +124,7 @@ export default function PlayerProfileModal({ player, onClose }: PlayerProfileMod
           
           <div className="flex items-center space-x-6">
             {/* Player Image */}
-            <div className="w-32 h-32 rounded-lg overflow-hidden bg-white/20 flex-shrink-0">
+            <div className="w-96 h-96 rounded-lg overflow-hidden bg-white/20 flex-shrink-0">
               {player.image_url ? (
                 <img
                   src={player.image_url}
