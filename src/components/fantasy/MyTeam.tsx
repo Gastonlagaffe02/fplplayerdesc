@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase';
 import { Player, Team, FantasyTeam, Roster } from '../../types/database';
 import { useAuth } from '../../contexts/AuthContext';
 import TeamCreation from './TeamCreation';
+import PlayerProfileModal from './PlayerProfileModal';
 import toast from 'react-hot-toast';
 
 interface PlayerWithTeam extends Player {
@@ -24,6 +25,8 @@ export default function MyTeam() {
   const [availablePlayers, setAvailablePlayers] = useState<PlayerWithTeam[]>([]);
   const [showPlayerModal, setShowPlayerModal] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<string>('');
+  const [selectedPlayerForProfile, setSelectedPlayerForProfile] = useState<PlayerWithTeam | null>(null);
+  const [showPlayerProfile, setShowPlayerProfile] = useState(false);
 
   const TRANSFER_DEADLINE = new Date('2025-06-30');
   const canMakeChanges = new Date() <= TRANSFER_DEADLINE;
@@ -220,6 +223,11 @@ export default function MyTeam() {
     }
   };
 
+  const handlePlayerClick = (player: PlayerWithTeam) => {
+    setSelectedPlayerForProfile(player);
+    setShowPlayerProfile(true);
+  };
+
   const handleTeamCreated = () => {
     // Refresh the team data after creation
     fetchFantasyTeam();
@@ -381,6 +389,7 @@ export default function MyTeam() {
                   }}
                   onSetCaptain={() => setCaptain(rosterPlayer.roster_id)}
                   onSetViceCaptain={() => setViceCaptain(rosterPlayer.roster_id)}
+                  onPlayerClick={() => handlePlayerClick(rosterPlayer.player)}
                 />
               ))}
             </div>
@@ -398,6 +407,7 @@ export default function MyTeam() {
                   }}
                   onSetCaptain={() => setCaptain(rosterPlayer.roster_id)}
                   onSetViceCaptain={() => setViceCaptain(rosterPlayer.roster_id)}
+                  onPlayerClick={() => handlePlayerClick(rosterPlayer.player)}
                 />
               ))}
             </div>
@@ -415,6 +425,7 @@ export default function MyTeam() {
                   }}
                   onSetCaptain={() => setCaptain(rosterPlayer.roster_id)}
                   onSetViceCaptain={() => setViceCaptain(rosterPlayer.roster_id)}
+                  onPlayerClick={() => handlePlayerClick(rosterPlayer.player)}
                 />
               ))}
             </div>
@@ -432,6 +443,7 @@ export default function MyTeam() {
                   }}
                   onSetCaptain={() => setCaptain(rosterPlayer.roster_id)}
                   onSetViceCaptain={() => setViceCaptain(rosterPlayer.roster_id)}
+                  onPlayerClick={() => handlePlayerClick(rosterPlayer.player)}
                 />
               ))}
             </div>
@@ -447,7 +459,10 @@ export default function MyTeam() {
             <div key={rosterPlayer.roster_id} className="bg-gray-50 p-4 rounded-lg">
               <div className="flex flex-col items-center">
                 {/* Jersey Image */}
-                <div className="w-16 h-16 mb-2 relative">
+                <div 
+                  className="w-16 h-16 mb-1 relative cursor-pointer hover:scale-105 transition-transform"
+                  onClick={() => handlePlayerClick(rosterPlayer.player)}
+                >
                   {rosterPlayer.player?.team_jersey ? (
                     <img
                       src={rosterPlayer.player.team_jersey}
@@ -482,7 +497,12 @@ export default function MyTeam() {
 
                 {/* Player Info */}
                 <div className="text-center">
-                  <div className="font-medium text-gray-900 text-sm mb-1">{rosterPlayer.player?.name}</div>
+                  <div 
+                    className="font-medium text-gray-900 text-sm mb-1 cursor-pointer hover:text-emerald-600 transition-colors"
+                    onClick={() => handlePlayerClick(rosterPlayer.player)}
+                  >
+                    {rosterPlayer.player?.name}
+                  </div>
                   <div className="text-xs text-gray-600 mb-1">£{rosterPlayer.player?.price}M</div>
                   <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
                     rosterPlayer.player?.position === 'GK' ? 'bg-purple-100 text-purple-800' :
@@ -558,6 +578,17 @@ export default function MyTeam() {
           </div>
         </div>
       )}
+
+      {/* Player Profile Modal */}
+      {showPlayerProfile && selectedPlayerForProfile && (
+        <PlayerProfileModal
+          player={selectedPlayerForProfile}
+          onClose={() => {
+            setShowPlayerProfile(false);
+            setSelectedPlayerForProfile(null);
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -569,13 +600,17 @@ interface PlayerCardProps {
   onReplace: () => void;
   onSetCaptain: () => void;
   onSetViceCaptain: () => void;
+  onPlayerClick: () => void;
 }
 
-function PlayerCard({ rosterPlayer, editMode, onReplace, onSetCaptain, onSetViceCaptain }: PlayerCardProps) {
+function PlayerCard({ rosterPlayer, editMode, onReplace, onSetCaptain, onSetViceCaptain, onPlayerClick }: PlayerCardProps) {
   return (
     <div className="relative flex flex-col items-center">
       {/* Jersey Image */}
-      <div className="w-60 h-60 relative">
+      <div 
+        className="w-60 h-60 relative cursor-pointer hover:scale-105 transition-transform"
+        onClick={onPlayerClick}
+      >
         {rosterPlayer.player?.team_jersey ? (
           <img
             src={rosterPlayer.player.team_jersey}
@@ -608,8 +643,11 @@ function PlayerCard({ rosterPlayer, editMode, onReplace, onSetCaptain, onSetVice
         )}
       </div>
 
-      {/* Player Info Card */}
-      <div className="bg-white rounded-lg shadow-lg p-1 min-w-[180px] text-center -mt-2">
+      {/* Player Info Card - Very close to jersey */}
+      <div 
+        className="bg-white rounded-lg shadow-lg p-1 min-w-[180px] text-center -mt-1 cursor-pointer hover:bg-gray-50 transition-colors"
+        onClick={onPlayerClick}
+      >
         <div className="font-semibold text-base text-gray-900 truncate px-1">
           {rosterPlayer.player?.name}
         </div>

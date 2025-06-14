@@ -54,6 +54,7 @@ export interface Database {
           clean_sheets: number;
           yellow_cards: number;
           red_cards: number;
+          image_url: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -71,6 +72,7 @@ export interface Database {
           clean_sheets?: number;
           yellow_cards?: number;
           red_cards?: number;
+          image_url?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -88,6 +90,7 @@ export interface Database {
           clean_sheets?: number;
           yellow_cards?: number;
           red_cards?: number;
+          image_url?: string | null;
           created_at?: string;
           updated_at?: string;
         };
