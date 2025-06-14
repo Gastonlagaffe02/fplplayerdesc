@@ -17,18 +17,8 @@ interface PlayerStats {
   rank: number;
 }
 
-interface FixtureData {
-  gameweek: number;
-  opponent: string;
-  isHome: boolean;
-  difficulty: number;
-  date: string;
-}
-
 export default function PlayerProfileModal({ player, onClose }: PlayerProfileModalProps) {
-  const [activeTab, setActiveTab] = useState<'history' | 'fixtures'>('fixtures');
   const [gameweekScores, setGameweekScores] = useState<GameweekScore[]>([]);
-  const [fixtures, setFixtures] = useState<FixtureData[]>([]);
   const [playerStats, setPlayerStats] = useState<PlayerStats>({
     form: 0,
     pointsPerMatch: 0,
@@ -76,16 +66,6 @@ export default function PlayerProfileModal({ player, onClose }: PlayerProfileMod
         });
       }
 
-      // Fetch upcoming fixtures (mock data for now)
-      const mockFixtures: FixtureData[] = [
-        { gameweek: 39, opponent: 'EST', isHome: true, difficulty: 3, date: '2025-01-15' },
-        { gameweek: 40, opponent: 'CSS', isHome: false, difficulty: 4, date: '2025-01-22' },
-        { gameweek: 41, opponent: 'CA', isHome: true, difficulty: 2, date: '2025-01-29' },
-        { gameweek: 42, opponent: 'ST', isHome: false, difficulty: 3, date: '2025-02-05' },
-        { gameweek: 43, opponent: 'ESS', isHome: true, difficulty: 4, date: '2025-02-12' },
-      ];
-      setFixtures(mockFixtures);
-
     } catch (error) {
       console.error('Error fetching player data:', error);
     } finally {
@@ -111,12 +91,6 @@ export default function PlayerProfileModal({ player, onClose }: PlayerProfileMod
       case 'FWD': return 'Forward';
       default: return position;
     }
-  };
-
-  const getDifficultyColor = (difficulty: number) => {
-    if (difficulty <= 2) return 'bg-green-500';
-    if (difficulty === 3) return 'bg-yellow-500';
-    return 'bg-red-500';
   };
 
   const getResultColor = (points: number) => {
@@ -225,14 +199,14 @@ export default function PlayerProfileModal({ player, onClose }: PlayerProfileMod
           </div>
         </div>
 
-        {/* Form and Fixtures Section */}
+        {/* Form Section */}
         <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div className="mb-6">
             {/* Recent Form */}
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
                 <TrendingUp className="h-5 w-5 mr-2" />
-                Form
+                Recent Form
               </h3>
               <div className="flex space-x-2">
                 {gameweekScores.slice(0, 5).map((score, index) => (
@@ -245,150 +219,72 @@ export default function PlayerProfileModal({ player, onClose }: PlayerProfileMod
                 ))}
               </div>
             </div>
-
-            {/* Upcoming Fixtures */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                <Calendar className="h-5 w-5 mr-2" />
-                Fixtures
-              </h3>
-              <div className="space-y-2">
-                {fixtures.slice(0, 3).map((fixture) => (
-                  <div key={fixture.gameweek} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm font-medium">GW{fixture.gameweek}</span>
-                      <span className="text-sm">{fixture.isHome ? 'vs' : '@'} {fixture.opponent}</span>
-                    </div>
-                    <div className={`w-6 h-6 rounded ${getDifficultyColor(fixture.difficulty)}`}></div>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
 
-          {/* Navigation Tabs */}
-          <div className="border-b border-gray-200 mb-6">
-            <nav className="flex space-x-8">
-              <button
-                onClick={() => setActiveTab('history')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
-                  activeTab === 'history'
-                    ? 'border-emerald-500 text-emerald-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                History
-              </button>
-              <button
-                onClick={() => setActiveTab('fixtures')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
-                  activeTab === 'fixtures'
-                    ? 'border-emerald-500 text-emerald-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Fixtures
-              </button>
-            </nav>
-          </div>
-
-          {/* Tab Content */}
+          {/* Season History */}
           <div className="max-h-96 overflow-y-auto">
-            {activeTab === 'history' && (
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">This Season</h3>
-                <div className="overflow-x-auto">
-                  <table className="min-w-full text-sm">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">GW</th>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">OPP</th>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pts</th>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Min</th>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">G</th>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">A</th>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">CS</th>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">YC</th>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">RC</th>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Bonus</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {gameweekScores.map((score) => (
-                        <tr key={score.score_id} className="hover:bg-gray-50">
-                          <td className="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {score.gameweek}
-                          </td>
-                          <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
-                            vs OPP
-                          </td>
-                          <td className="px-3 py-2 whitespace-nowrap">
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                              (score.total_points || 0) >= 8 ? 'bg-green-100 text-green-800' :
-                              (score.total_points || 0) >= 4 ? 'bg-yellow-100 text-yellow-800' :
-                              (score.total_points || 0) > 0 ? 'bg-orange-100 text-orange-800' :
-                              'bg-red-100 text-red-800'
-                            }`}>
-                              {score.total_points || 0}
-                            </span>
-                          </td>
-                          <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
-                            {score.minutes_played || 0}
-                          </td>
-                          <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
-                            {score.goals || 0}
-                          </td>
-                          <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
-                            {score.assists || 0}
-                          </td>
-                          <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
-                            {score.clean_sheet ? '1' : '0'}
-                          </td>
-                          <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
-                            {score.yellow_cards || 0}
-                          </td>
-                          <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
-                            {score.red_cards || 0}
-                          </td>
-                          <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
-                            {score.bonus_points || 0}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'fixtures' && (
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Upcoming Fixtures</h3>
-                <div className="space-y-3">
-                  {fixtures.map((fixture) => (
-                    <div key={fixture.gameweek} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        <div className="text-center">
-                          <div className="text-sm font-medium text-gray-900">GW{fixture.gameweek}</div>
-                          <div className="text-xs text-gray-500">
-                            {new Date(fixture.date).toLocaleDateString()}
-                          </div>
-                        </div>
-                        <div className="text-lg font-medium text-gray-900">
-                          {fixture.isHome ? 'vs' : '@'} {fixture.opponent}
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm text-gray-500">Difficulty:</span>
-                        <div className={`w-8 h-8 rounded flex items-center justify-center text-white text-sm font-bold ${getDifficultyColor(fixture.difficulty)}`}>
-                          {fixture.difficulty}
-                        </div>
-                      </div>
-                    </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">This Season</h3>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">GW</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">OPP</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Pts</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Min</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">G</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">A</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">CS</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">YC</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">RC</th>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Bonus</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {gameweekScores.map((score) => (
+                    <tr key={score.score_id} className="hover:bg-gray-50">
+                      <td className="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {score.gameweek}
+                      </td>
+                      <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
+                        vs OPP
+                      </td>
+                      <td className="px-3 py-2 whitespace-nowrap">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                          (score.total_points || 0) >= 8 ? 'bg-green-100 text-green-800' :
+                          (score.total_points || 0) >= 4 ? 'bg-yellow-100 text-yellow-800' :
+                          (score.total_points || 0) > 0 ? 'bg-orange-100 text-orange-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {score.total_points || 0}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
+                        {score.minutes_played || 0}
+                      </td>
+                      <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
+                        {score.goals || 0}
+                      </td>
+                      <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
+                        {score.assists || 0}
+                      </td>
+                      <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
+                        {score.clean_sheet ? '1' : '0'}
+                      </td>
+                      <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
+                        {score.yellow_cards || 0}
+                      </td>
+                      <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
+                        {score.red_cards || 0}
+                      </td>
+                      <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
+                        {score.bonus_points || 0}
+                      </td>
+                    </tr>
                   ))}
-                </div>
-              </div>
-            )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
