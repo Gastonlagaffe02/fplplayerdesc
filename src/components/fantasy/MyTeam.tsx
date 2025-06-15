@@ -25,6 +25,7 @@ export default function MyTeam() {
   const [availablePlayers, setAvailablePlayers] = useState<PlayerWithTeam[]>([]);
   const [showPlayerModal, setShowPlayerModal] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<string>('');
+  const [replacingRosterId, setReplacingRosterId] = useState<string | null>(null);
   const [selectedPlayerForProfile, setSelectedPlayerForProfile] = useState<PlayerWithTeam | null>(null);
   const [showPlayerProfile, setShowPlayerProfile] = useState(false);
 
@@ -165,6 +166,7 @@ export default function MyTeam() {
         await fetchRoster(fantasyTeam.fantasy_team_id);
       }
       setShowPlayerModal(false);
+      setReplacingRosterId(null);
     } catch (error) {
       console.error('Error replacing player:', error);
       toast.error('Failed to replace player');
@@ -231,6 +233,18 @@ export default function MyTeam() {
   const handleTeamCreated = () => {
     // Refresh the team data after creation
     fetchFantasyTeam();
+  };
+
+  const openPlayerModal = (rosterId: string, position: string) => {
+    setReplacingRosterId(rosterId);
+    setSelectedPosition(position);
+    setShowPlayerModal(true);
+  };
+
+  const closePlayerModal = () => {
+    setShowPlayerModal(false);
+    setReplacingRosterId(null);
+    setSelectedPosition('');
   };
 
   if (loading) {
@@ -383,10 +397,7 @@ export default function MyTeam() {
                   key={rosterPlayer.roster_id}
                   rosterPlayer={rosterPlayer}
                   editMode={editMode}
-                  onReplace={() => {
-                    setSelectedPosition('GK');
-                    setShowPlayerModal(true);
-                  }}
+                  onReplace={() => openPlayerModal(rosterPlayer.roster_id, 'GK')}
                   onSetCaptain={() => setCaptain(rosterPlayer.roster_id)}
                   onSetViceCaptain={() => setViceCaptain(rosterPlayer.roster_id)}
                   onPlayerClick={() => handlePlayerClick(rosterPlayer.player)}
@@ -401,10 +412,7 @@ export default function MyTeam() {
                   key={rosterPlayer.roster_id}
                   rosterPlayer={rosterPlayer}
                   editMode={editMode}
-                  onReplace={() => {
-                    setSelectedPosition('DEF');
-                    setShowPlayerModal(true);
-                  }}
+                  onReplace={() => openPlayerModal(rosterPlayer.roster_id, 'DEF')}
                   onSetCaptain={() => setCaptain(rosterPlayer.roster_id)}
                   onSetViceCaptain={() => setViceCaptain(rosterPlayer.roster_id)}
                   onPlayerClick={() => handlePlayerClick(rosterPlayer.player)}
@@ -419,10 +427,7 @@ export default function MyTeam() {
                   key={rosterPlayer.roster_id}
                   rosterPlayer={rosterPlayer}
                   editMode={editMode}
-                  onReplace={() => {
-                    setSelectedPosition('MID');
-                    setShowPlayerModal(true);
-                  }}
+                  onReplace={() => openPlayerModal(rosterPlayer.roster_id, 'MID')}
                   onSetCaptain={() => setCaptain(rosterPlayer.roster_id)}
                   onSetViceCaptain={() => setViceCaptain(rosterPlayer.roster_id)}
                   onPlayerClick={() => handlePlayerClick(rosterPlayer.player)}
@@ -437,10 +442,7 @@ export default function MyTeam() {
                   key={rosterPlayer.roster_id}
                   rosterPlayer={rosterPlayer}
                   editMode={editMode}
-                  onReplace={() => {
-                    setSelectedPosition('FWD');
-                    setShowPlayerModal(true);
-                  }}
+                  onReplace={() => openPlayerModal(rosterPlayer.roster_id, 'FWD')}
                   onSetCaptain={() => setCaptain(rosterPlayer.roster_id)}
                   onSetViceCaptain={() => setViceCaptain(rosterPlayer.roster_id)}
                   onPlayerClick={() => handlePlayerClick(rosterPlayer.player)}
@@ -516,10 +518,7 @@ export default function MyTeam() {
 
                 {editMode && canMakeChanges && (
                   <button
-                    onClick={() => {
-                      setSelectedPosition(rosterPlayer.player?.position || '');
-                      setShowPlayerModal(true);
-                    }}
+                    onClick={() => openPlayerModal(rosterPlayer.roster_id, rosterPlayer.player?.position || '')}
                     className="mt-2 text-emerald-600 hover:text-emerald-700 text-xs"
                   >
                     <Edit className="h-3 w-3" />
@@ -537,7 +536,7 @@ export default function MyTeam() {
           <div className="bg-white rounded-xl p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold">Replace {selectedPosition} Player</h3>
-              <button onClick={() => setShowPlayerModal(false)}>
+              <button onClick={closePlayerModal}>
                 <X className="h-6 w-6" />
               </button>
             </div>
@@ -567,7 +566,7 @@ export default function MyTeam() {
                       </div>
                     </div>
                     <button
-                      onClick={() => handlePlayerReplace('', player.player_id)}
+                      onClick={() => replacingRosterId && handlePlayerReplace(replacingRosterId, player.player_id)}
                       className="bg-emerald-600 text-white px-3 py-1 rounded hover:bg-emerald-700"
                     >
                       Select
