@@ -152,6 +152,12 @@ export default function MyTeam() {
     };
   };
 
+  const calculateBudgetAfterTransfer = (outgoingPlayer: PlayerWithTeam, incomingPlayer: PlayerWithTeam) => {
+    const currentBudget = fantasyTeam?.budget_remaining || 0;
+    const priceDifference = incomingPlayer.price - outgoingPlayer.price;
+    return currentBudget - priceDifference;
+  };
+
   const handlePlayerReplace = async (rosterId: string, newPlayerId: string) => {
     try {
       const { error } = await supabase
@@ -160,6 +166,24 @@ export default function MyTeam() {
         .eq('roster_id', rosterId);
 
       if (error) throw error;
+
+      // Update budget after successful transfer
+      const outgoingPlayer = roster.find(r => r.roster_id === rosterId)?.player;
+      const incomingPlayer = availablePlayers.find(p => p.player_id === newPlayerId);
+      
+      if (outgoingPlayer && incomingPlayer && fantasyTeam) {
+        const newBudget = calculateBudgetAfterTransfer(outgoingPlayer, incomingPlayer);
+        
+        const { error: budgetError } = await supabase
+          .from('fantasy_teams')
+          .update({ budget_remaining: newBudget })
+          .eq('fantasy_team_id', fantasyTeam.fantasy_team_id);
+
+        if (budgetError) throw budgetError;
+        
+        // Update local state
+        setFantasyTeam(prev => prev ? { ...prev, budget_remaining: newBudget } : null);
+      }
 
       toast.success('Player replaced successfully');
       if (fantasyTeam) {
@@ -267,13 +291,13 @@ export default function MyTeam() {
   const viceCaptain = roster.find(r => r.is_vice_captain);
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6 bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen p-4">
       {/* Team Header */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className="bg-gradient-to-r from-emerald-500 to-blue-600 rounded-2xl shadow-lg p-6 text-white">
         <div className="flex justify-between items-start mb-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">{fantasyTeam.team_name}</h1>
-            <p className="text-gray-600">Your Fantasy Soccer Team</p>
+            <h1 className="text-3xl font-bold">{fantasyTeam.team_name}</h1>
+            <p className="text-emerald-100">Your Fantasy Soccer Team</p>
           </div>
           <div className="flex items-center space-x-4">
             {canMakeChanges && (
@@ -284,10 +308,10 @@ export default function MyTeam() {
                     fetchAvailablePlayers();
                   }
                 }}
-                className={`px-4 py-2 rounded-lg transition-colors flex items-center ${
+                className={`px-6 py-3 rounded-xl transition-all duration-200 flex items-center font-medium ${
                   editMode 
-                    ? 'bg-red-100 text-red-700 hover:bg-red-200' 
-                    : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+                    ? 'bg-red-500 hover:bg-red-600 shadow-lg' 
+                    : 'bg-white/20 hover:bg-white/30 backdrop-blur-sm'
                 }`}
               >
                 {editMode ? (
@@ -308,50 +332,50 @@ export default function MyTeam() {
 
         {/* Team Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-emerald-50 p-4 rounded-lg">
+          <div className="bg-white/20 backdrop-blur-sm p-4 rounded-xl border border-white/20">
             <div className="flex items-center">
-              <Trophy className="h-5 w-5 text-emerald-600 mr-2" />
+              <Trophy className="h-5 w-5 mr-2" />
               <div>
-                <p className="text-sm text-emerald-600">Total Points</p>
-                <p className="text-lg font-semibold text-emerald-900">{fantasyTeam.total_points}</p>
+                <p className="text-sm text-emerald-100">Total Points</p>
+                <p className="text-lg font-semibold">{fantasyTeam.total_points}</p>
               </div>
             </div>
           </div>
           
-          <div className="bg-blue-50 p-4 rounded-lg">
+          <div className="bg-white/20 backdrop-blur-sm p-4 rounded-xl border border-white/20">
             <div className="flex items-center">
-              <Calendar className="h-5 w-5 text-blue-600 mr-2" />
+              <Calendar className="h-5 w-5 mr-2" />
               <div>
-                <p className="text-sm text-blue-600">This Gameweek</p>
-                <p className="text-lg font-semibold text-blue-900">{fantasyTeam.gameweek_points}</p>
+                <p className="text-sm text-emerald-100">This Gameweek</p>
+                <p className="text-lg font-semibold">{fantasyTeam.gameweek_points}</p>
               </div>
             </div>
           </div>
           
-          <div className="bg-purple-50 p-4 rounded-lg">
+          <div className="bg-white/20 backdrop-blur-sm p-4 rounded-xl border border-white/20">
             <div className="flex items-center">
-              <DollarSign className="h-5 w-5 text-purple-600 mr-2" />
+              <DollarSign className="h-5 w-5 mr-2" />
               <div>
-                <p className="text-sm text-purple-600">Budget Left</p>
-                <p className="text-lg font-semibold text-purple-900">£{fantasyTeam.budget_remaining}M</p>
+                <p className="text-sm text-emerald-100">Budget Left</p>
+                <p className="text-lg font-semibold">£{fantasyTeam.budget_remaining}M</p>
               </div>
             </div>
           </div>
           
-          <div className="bg-orange-50 p-4 rounded-lg">
+          <div className="bg-white/20 backdrop-blur-sm p-4 rounded-xl border border-white/20">
             <div className="flex items-center">
-              <Users className="h-5 w-5 text-orange-600 mr-2" />
+              <Users className="h-5 w-5 mr-2" />
               <div>
-                <p className="text-sm text-orange-600">Rank</p>
-                <p className="text-lg font-semibold text-orange-900">#{fantasyTeam.rank}</p>
+                <p className="text-sm text-emerald-100">Rank</p>
+                <p className="text-lg font-semibold">#{fantasyTeam.rank}</p>
               </div>
             </div>
           </div>
         </div>
 
         {!canMakeChanges && (
-          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p className="text-yellow-800 text-sm">
+          <div className="mt-4 p-3 bg-yellow-500/20 border border-yellow-400/30 rounded-xl backdrop-blur-sm">
+            <p className="text-yellow-100 text-sm">
               Transfer deadline has passed. You can no longer make changes to your team.
             </p>
           </div>
@@ -359,21 +383,21 @@ export default function MyTeam() {
       </div>
 
       {/* Formation and Pitch */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-white/50">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold text-gray-900">
+          <h2 className="text-xl font-semibold text-gray-800">
             Formation: {formation.defenders}-{formation.midfielders}-{formation.forwards}
           </h2>
           <div className="flex items-center space-x-4 text-sm text-gray-600">
             {captain && (
-              <div className="flex items-center">
-                <Crown className="h-4 w-4 text-yellow-500 mr-1" />
+              <div className="flex items-center bg-yellow-100 px-3 py-1 rounded-full">
+                <Crown className="h-4 w-4 text-yellow-600 mr-1" />
                 Captain: {captain.player?.name}
               </div>
             )}
             {viceCaptain && (
-              <div className="flex items-center">
-                <Star className="h-4 w-4 text-gray-500 mr-1" />
+              <div className="flex items-center bg-gray-100 px-3 py-1 rounded-full">
+                <Star className="h-4 w-4 text-gray-600 mr-1" />
                 Vice: {viceCaptain.player?.name}
               </div>
             )}
@@ -382,7 +406,7 @@ export default function MyTeam() {
 
         {/* Soccer Pitch */}
         <div 
-          className="relative rounded-lg min-h-[600px] bg-cover bg-center bg-no-repeat p-8"
+          className="relative rounded-2xl min-h-[600px] bg-cover bg-center bg-no-repeat p-8 border-2 border-emerald-200"
           style={{
             backgroundImage: `url('https://i.imgur.com/x6NH58g.png')`,
             backgroundSize: 'cover'
@@ -454,22 +478,33 @@ export default function MyTeam() {
       </div>
 
       {/* Bench */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Substitutes</h2>
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-white/50">
+        <h2 className="text-xl font-semibold text-gray-800 mb-4">Substitutes</h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {bench.map((rosterPlayer) => (
-            <div key={rosterPlayer.roster_id} className="bg-gray-50 p-4 rounded-lg">
+            <div key={rosterPlayer.roster_id} className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl border border-gray-200 hover:shadow-md transition-all duration-200">
               <div className="flex flex-col items-center">
-                {/* Jersey Image */}
+                {/* Player Image or Jersey */}
                 <div 
-                  className="w-16 h-16 mb-1 relative cursor-pointer hover:scale-105 transition-transform"
+                  className="w-16 h-20 mb-2 relative cursor-pointer hover:scale-105 transition-transform"
                   onClick={() => handlePlayerClick(rosterPlayer.player)}
                 >
+                  {rosterPlayer.player?.image_url ? (
+                    <img
+                      src={rosterPlayer.player.image_url}
+                      alt={rosterPlayer.player?.name}
+                      className="w-full h-full object-cover object-top rounded-lg"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.nextElementSibling!.style.display = 'block';
+                      }}
+                    />
+                  ) : null}
                   {rosterPlayer.player?.team_jersey ? (
                     <img
                       src={rosterPlayer.player.team_jersey}
                       alt={`${rosterPlayer.player?.team_name} jersey`}
-                      className="w-full h-full object-contain"
+                      className={`w-full h-full object-contain ${rosterPlayer.player?.image_url ? 'hidden' : 'block'}`}
                       onError={(e) => {
                         e.currentTarget.style.display = 'none';
                         e.currentTarget.nextElementSibling!.style.display = 'flex';
@@ -478,10 +513,10 @@ export default function MyTeam() {
                   ) : null}
                   <div 
                     className={`w-full h-full bg-gray-300 rounded-lg flex items-center justify-center ${
-                      rosterPlayer.player?.team_jersey ? 'hidden' : 'flex'
+                      rosterPlayer.player?.image_url || rosterPlayer.player?.team_jersey ? 'hidden' : 'flex'
                     }`}
                   >
-                    <span className="text-xs text-gray-500">No Jersey</span>
+                    <span className="text-xs text-gray-500">No Image</span>
                   </div>
                   
                   {/* Captain/Vice Captain badges */}
@@ -519,7 +554,7 @@ export default function MyTeam() {
                 {editMode && canMakeChanges && (
                   <button
                     onClick={() => openPlayerModal(rosterPlayer.roster_id, rosterPlayer.player?.position || '')}
-                    className="mt-2 text-emerald-600 hover:text-emerald-700 text-xs"
+                    className="mt-2 text-emerald-600 hover:text-emerald-700 text-xs bg-emerald-50 px-2 py-1 rounded-full hover:bg-emerald-100 transition-colors"
                   >
                     <Edit className="h-3 w-3" />
                   </button>
@@ -533,46 +568,94 @@ export default function MyTeam() {
       {/* Player Replacement Modal */}
       {showPlayerModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Replace {selectedPosition} Player</h3>
-              <button onClick={closePlayerModal}>
+          <div className="bg-white rounded-2xl p-6 w-full max-w-4xl max-h-[80vh] overflow-y-auto shadow-2xl">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h3 className="text-xl font-semibold text-gray-800">Replace {selectedPosition} Player</h3>
+                {fantasyTeam && (
+                  <p className="text-sm text-gray-600 mt-1">
+                    Current Budget: £{fantasyTeam.budget_remaining}M
+                  </p>
+                )}
+              </div>
+              <button onClick={closePlayerModal} className="text-gray-400 hover:text-gray-600 transition-colors">
                 <X className="h-6 w-6" />
               </button>
             </div>
             
-            <div className="space-y-2 max-h-96 overflow-y-auto">
+            <div className="space-y-3 max-h-96 overflow-y-auto">
               {availablePlayers
                 .filter(player => player.position === selectedPosition)
-                .map((player) => (
-                  <div key={player.player_id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12">
-                        {player.team_jersey ? (
-                          <img
-                            src={player.team_jersey}
-                            alt={`${player.team_name} jersey`}
-                            className="w-full h-full object-contain"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-gray-300 rounded flex items-center justify-center">
-                            <span className="text-xs text-gray-500">No Jersey</span>
+                .map((player) => {
+                  const currentPlayer = roster.find(r => r.roster_id === replacingRosterId)?.player;
+                  const budgetAfterTransfer = currentPlayer ? calculateBudgetAfterTransfer(currentPlayer, player) : fantasyTeam?.budget_remaining || 0;
+                  const canAfford = budgetAfterTransfer >= 0;
+                  const priceDifference = currentPlayer ? player.price - currentPlayer.price : 0;
+                  
+                  return (
+                    <div key={player.player_id} className={`flex items-center justify-between p-4 border rounded-xl transition-all duration-200 ${
+                      canAfford ? 'hover:bg-emerald-50 border-gray-200 hover:border-emerald-300' : 'bg-red-50 border-red-200'
+                    }`}>
+                      <div className="flex items-center space-x-4">
+                        <div className="w-16 h-20 flex-shrink-0">
+                          {player.image_url ? (
+                            <img
+                              src={player.image_url}
+                              alt={player.name}
+                              className="w-full h-full object-cover object-top rounded-lg"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                e.currentTarget.nextElementSibling!.style.display = 'block';
+                              }}
+                            />
+                          ) : null}
+                          {player.team_jersey ? (
+                            <img
+                              src={player.team_jersey}
+                              alt={`${player.team_name} jersey`}
+                              className={`w-full h-full object-contain ${player.image_url ? 'hidden' : 'block'}`}
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                e.currentTarget.nextElementSibling!.style.display = 'flex';
+                              }}
+                            />
+                          ) : null}
+                          <div className={`w-full h-full bg-gray-300 rounded-lg flex items-center justify-center ${
+                            player.image_url || player.team_jersey ? 'hidden' : 'flex'
+                          }`}>
+                            <span className="text-xs text-gray-500">No Image</span>
                           </div>
-                        )}
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-900">{player.name}</div>
+                          <div className="text-sm text-gray-500">{player.team_name}</div>
+                          <div className="text-sm font-medium text-gray-700">£{player.price}M</div>
+                          {priceDifference !== 0 && (
+                            <div className={`text-xs ${priceDifference > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                              {priceDifference > 0 ? '+' : ''}£{priceDifference.toFixed(1)}M
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <div>
-                        <div className="font-medium">{player.name}</div>
-                        <div className="text-sm text-gray-500">{player.team_name} • £{player.price}M</div>
+                      <div className="text-right">
+                        <div className="text-sm text-gray-600 mb-2">
+                          Budget after: £{budgetAfterTransfer.toFixed(1)}M
+                        </div>
+                        <button
+                          onClick={() => replacingRosterId && handlePlayerReplace(replacingRosterId, player.player_id)}
+                          disabled={!canAfford}
+                          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                            canAfford 
+                              ? 'bg-emerald-600 text-white hover:bg-emerald-700' 
+                              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                          }`}
+                        >
+                          {canAfford ? 'Select' : 'Can\'t Afford'}
+                        </button>
                       </div>
                     </div>
-                    <button
-                      onClick={() => replacingRosterId && handlePlayerReplace(replacingRosterId, player.player_id)}
-                      className="bg-emerald-600 text-white px-3 py-1 rounded hover:bg-emerald-700"
-                    >
-                      Select
-                    </button>
-                  </div>
-                ))}
+                  );
+                })}
             </div>
           </div>
         </div>
@@ -605,16 +688,27 @@ interface PlayerCardProps {
 function PlayerCard({ rosterPlayer, editMode, onReplace, onSetCaptain, onSetViceCaptain, onPlayerClick }: PlayerCardProps) {
   return (
     <div className="relative flex flex-col items-center">
-      {/* Jersey Image */}
+      {/* Player Image or Jersey */}
       <div 
-        className="w-60 h-60 relative cursor-pointer hover:scale-105 transition-transform"
+        className="w-24 h-32 relative cursor-pointer hover:scale-105 transition-transform mb-1"
         onClick={onPlayerClick}
       >
+        {rosterPlayer.player?.image_url ? (
+          <img
+            src={rosterPlayer.player.image_url}
+            alt={rosterPlayer.player?.name}
+            className="w-full h-full object-cover object-top rounded-lg shadow-lg border-2 border-white"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+              e.currentTarget.nextElementSibling!.style.display = 'block';
+            }}
+          />
+        ) : null}
         {rosterPlayer.player?.team_jersey ? (
           <img
             src={rosterPlayer.player.team_jersey}
             alt={`${rosterPlayer.player?.team_name} jersey`}
-            className="w-full h-full object-contain drop-shadow-lg"
+            className={`w-full h-full object-contain drop-shadow-lg ${rosterPlayer.player?.image_url ? 'hidden' : 'block'}`}
             onError={(e) => {
               e.currentTarget.style.display = 'none';
               e.currentTarget.nextElementSibling!.style.display = 'flex';
@@ -622,11 +716,11 @@ function PlayerCard({ rosterPlayer, editMode, onReplace, onSetCaptain, onSetVice
           />
         ) : null}
         <div 
-          className={`w-full h-full bg-white rounded-lg flex items-center justify-center shadow-lg ${
-            rosterPlayer.player?.team_jersey ? 'hidden' : 'flex'
+          className={`w-full h-full bg-white rounded-lg flex items-center justify-center shadow-lg border-2 border-gray-200 ${
+            rosterPlayer.player?.image_url || rosterPlayer.player?.team_jersey ? 'hidden' : 'flex'
           }`}
         >
-          <span className="text-xs text-gray-500">No Jersey</span>
+          <span className="text-xs text-gray-500">No Image</span>
         </div>
         
         {/* Captain/Vice Captain badges */}
@@ -642,15 +736,15 @@ function PlayerCard({ rosterPlayer, editMode, onReplace, onSetCaptain, onSetVice
         )}
       </div>
 
-      {/* Player Info Card - Very close to jersey */}
+      {/* Player Info Card - Very close to image */}
       <div 
-        className="bg-white rounded-lg shadow-lg p-1 min-w-[180px] text-center -mt-1 cursor-pointer hover:bg-gray-50 transition-colors"
+        className="bg-white/95 backdrop-blur-sm rounded-lg shadow-lg p-2 min-w-[140px] text-center cursor-pointer hover:bg-white transition-all duration-200 border border-white/50"
         onClick={onPlayerClick}
       >
-        <div className="font-semibold text-base text-gray-900 truncate px-1">
+        <div className="font-semibold text-sm text-gray-900 truncate px-1">
           {rosterPlayer.player?.name}
         </div>
-        <div className="text-sm font-medium text-gray-700">
+        <div className="text-xs font-medium text-emerald-600">
           £{rosterPlayer.player?.price}M
         </div>
       </div>
@@ -659,19 +753,19 @@ function PlayerCard({ rosterPlayer, editMode, onReplace, onSetCaptain, onSetVice
         <div className="mt-2 flex space-x-1">
           <button
             onClick={onReplace}
-            className="bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-xs hover:bg-emerald-200"
+            className="bg-emerald-500 text-white px-2 py-1 rounded-lg text-xs hover:bg-emerald-600 transition-colors shadow-md"
           >
             Replace
           </button>
           <button
             onClick={onSetCaptain}
-            className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs hover:bg-yellow-200"
+            className="bg-yellow-500 text-white px-2 py-1 rounded-lg text-xs hover:bg-yellow-600 transition-colors shadow-md"
           >
             C
           </button>
           <button
             onClick={onSetViceCaptain}
-            className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs hover:bg-gray-200"
+            className="bg-gray-500 text-white px-2 py-1 rounded-lg text-xs hover:bg-gray-600 transition-colors shadow-md"
           >
             VC
           </button>
