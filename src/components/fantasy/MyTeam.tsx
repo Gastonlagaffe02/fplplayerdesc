@@ -491,7 +491,7 @@ export default function MyTeam() {
               <div className="flex flex-col items-center">
                 {/* Player Jersey */}
                 <div 
-                  className="w-16 h-20 mb-2 relative cursor-pointer hover:scale-105 transition-transform"
+                  className="w-60 h-60 mb-2 relative cursor-pointer hover:scale-105 transition-transform"
                   onClick={() => handlePlayerClick(rosterPlayer.player)}
                 >
                   {rosterPlayer.player?.team_jersey ? (
