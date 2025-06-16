@@ -159,6 +159,11 @@ export default function MyTeam() {
   };
 
   const handlePlayerReplace = async (rosterId: string, newPlayerId: string) => {
+    if (!rosterId || !newPlayerId) {
+      toast.error('Invalid player selection');
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('rosters')
@@ -484,27 +489,16 @@ export default function MyTeam() {
           {bench.map((rosterPlayer) => (
             <div key={rosterPlayer.roster_id} className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl border border-gray-200 hover:shadow-md transition-all duration-200">
               <div className="flex flex-col items-center">
-                {/* Player Image or Jersey */}
+                {/* Player Jersey */}
                 <div 
                   className="w-16 h-20 mb-2 relative cursor-pointer hover:scale-105 transition-transform"
                   onClick={() => handlePlayerClick(rosterPlayer.player)}
                 >
-                  {rosterPlayer.player?.image_url ? (
-                    <img
-                      src={rosterPlayer.player.image_url}
-                      alt={rosterPlayer.player?.name}
-                      className="w-full h-full object-cover object-top rounded-lg"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                        e.currentTarget.nextElementSibling!.style.display = 'block';
-                      }}
-                    />
-                  ) : null}
                   {rosterPlayer.player?.team_jersey ? (
                     <img
                       src={rosterPlayer.player.team_jersey}
                       alt={`${rosterPlayer.player?.team_name} jersey`}
-                      className={`w-full h-full object-contain ${rosterPlayer.player?.image_url ? 'hidden' : 'block'}`}
+                      className="w-full h-full object-contain"
                       onError={(e) => {
                         e.currentTarget.style.display = 'none';
                         e.currentTarget.nextElementSibling!.style.display = 'flex';
@@ -513,10 +507,10 @@ export default function MyTeam() {
                   ) : null}
                   <div 
                     className={`w-full h-full bg-gray-300 rounded-lg flex items-center justify-center ${
-                      rosterPlayer.player?.image_url || rosterPlayer.player?.team_jersey ? 'hidden' : 'flex'
+                      rosterPlayer.player?.team_jersey ? 'hidden' : 'flex'
                     }`}
                   >
-                    <span className="text-xs text-gray-500">No Image</span>
+                    <span className="text-xs text-gray-500">No Jersey</span>
                   </div>
                   
                   {/* Captain/Vice Captain badges */}
@@ -598,22 +592,11 @@ export default function MyTeam() {
                     }`}>
                       <div className="flex items-center space-x-4">
                         <div className="w-16 h-20 flex-shrink-0">
-                          {player.image_url ? (
-                            <img
-                              src={player.image_url}
-                              alt={player.name}
-                              className="w-full h-full object-cover object-top rounded-lg"
-                              onError={(e) => {
-                                e.currentTarget.style.display = 'none';
-                                e.currentTarget.nextElementSibling!.style.display = 'block';
-                              }}
-                            />
-                          ) : null}
                           {player.team_jersey ? (
                             <img
                               src={player.team_jersey}
                               alt={`${player.team_name} jersey`}
-                              className={`w-full h-full object-contain ${player.image_url ? 'hidden' : 'block'}`}
+                              className="w-full h-full object-contain"
                               onError={(e) => {
                                 e.currentTarget.style.display = 'none';
                                 e.currentTarget.nextElementSibling!.style.display = 'flex';
@@ -621,9 +604,9 @@ export default function MyTeam() {
                             />
                           ) : null}
                           <div className={`w-full h-full bg-gray-300 rounded-lg flex items-center justify-center ${
-                            player.image_url || player.team_jersey ? 'hidden' : 'flex'
+                            player.team_jersey ? 'hidden' : 'flex'
                           }`}>
-                            <span className="text-xs text-gray-500">No Image</span>
+                            <span className="text-xs text-gray-500">No Jersey</span>
                           </div>
                         </div>
                         <div className="flex-1">
@@ -688,27 +671,16 @@ interface PlayerCardProps {
 function PlayerCard({ rosterPlayer, editMode, onReplace, onSetCaptain, onSetViceCaptain, onPlayerClick }: PlayerCardProps) {
   return (
     <div className="relative flex flex-col items-center">
-      {/* Player Image or Jersey */}
+      {/* Player Jersey - Bigger Size */}
       <div 
-        className="w-24 h-32 relative cursor-pointer hover:scale-105 transition-transform mb-1"
+        className="w-32 h-40 relative cursor-pointer hover:scale-105 transition-transform mb-1"
         onClick={onPlayerClick}
       >
-        {rosterPlayer.player?.image_url ? (
-          <img
-            src={rosterPlayer.player.image_url}
-            alt={rosterPlayer.player?.name}
-            className="w-full h-full object-cover object-top rounded-lg shadow-lg border-2 border-white"
-            onError={(e) => {
-              e.currentTarget.style.display = 'none';
-              e.currentTarget.nextElementSibling!.style.display = 'block';
-            }}
-          />
-        ) : null}
         {rosterPlayer.player?.team_jersey ? (
           <img
             src={rosterPlayer.player.team_jersey}
             alt={`${rosterPlayer.player?.team_name} jersey`}
-            className={`w-full h-full object-contain drop-shadow-lg ${rosterPlayer.player?.image_url ? 'hidden' : 'block'}`}
+            className="w-full h-full object-contain drop-shadow-lg"
             onError={(e) => {
               e.currentTarget.style.display = 'none';
               e.currentTarget.nextElementSibling!.style.display = 'flex';
@@ -717,10 +689,10 @@ function PlayerCard({ rosterPlayer, editMode, onReplace, onSetCaptain, onSetVice
         ) : null}
         <div 
           className={`w-full h-full bg-white rounded-lg flex items-center justify-center shadow-lg border-2 border-gray-200 ${
-            rosterPlayer.player?.image_url || rosterPlayer.player?.team_jersey ? 'hidden' : 'flex'
+            rosterPlayer.player?.team_jersey ? 'hidden' : 'flex'
           }`}
         >
-          <span className="text-xs text-gray-500">No Image</span>
+          <span className="text-sm text-gray-500">No Jersey</span>
         </div>
         
         {/* Captain/Vice Captain badges */}
@@ -736,7 +708,7 @@ function PlayerCard({ rosterPlayer, editMode, onReplace, onSetCaptain, onSetVice
         )}
       </div>
 
-      {/* Player Info Card - Very close to image */}
+      {/* Player Info Card - Very close to jersey */}
       <div 
         className="bg-white/95 backdrop-blur-sm rounded-lg shadow-lg p-2 min-w-[140px] text-center cursor-pointer hover:bg-white transition-all duration-200 border border-white/50"
         onClick={onPlayerClick}

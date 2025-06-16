@@ -123,13 +123,13 @@ export default function PlayerProfileModal({ player, onClose }: PlayerProfileMod
           </button>
           
           <div className="flex items-center space-x-6">
-            {/* Player Image */}
-            <div className="w-96 h-96 rounded-lg overflow-hidden bg-white/20 flex-shrink-0">
+            {/* Player Image - Full Size */}
+            <div className="w-48 h-64 rounded-lg overflow-hidden bg-white/20 flex-shrink-0">
               {player.image_url ? (
                 <img
                   src={player.image_url}
                   alt={player.name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover object-top"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none';
                     e.currentTarget.nextElementSibling!.style.display = 'flex';
