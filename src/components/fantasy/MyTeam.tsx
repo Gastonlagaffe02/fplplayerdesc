@@ -673,7 +673,7 @@ function PlayerCard({ rosterPlayer, editMode, onReplace, onSetCaptain, onSetVice
     <div className="relative flex flex-col items-center">
       {/* Player Jersey - Bigger Size */}
       <div 
-        className="w-32 h-40 relative cursor-pointer hover:scale-105 transition-transform mb-1"
+        className="w-60 h-60 relative cursor-pointer hover:scale-105 transition-transform mb-1"
         onClick={onPlayerClick}
       >
         {rosterPlayer.player?.team_jersey ? (
