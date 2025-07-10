@@ -23,3 +23,9 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
+# Model files and generated content
+*.pth
+*.zip
+*_info.txt
+fin_disease*
